@@ -47,7 +47,7 @@ enemyX = []
 enemyY = []
 enemyX_Change = []
 enemyY_Change = []
-num_of_enemies = 30
+num_of_enemies = 6
 
 # SCORE
 score_value = 0
@@ -63,7 +63,7 @@ for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('alien.png'))
     enemyX.append(random.randint(0, 735))
     enemyY.append(random.randint(50, 150))
-    enemyX_Change.append(4)
+    enemyX_Change.append(0.2)
     enemyY_Change.append(40)
 
 # PLAYER
@@ -94,6 +94,7 @@ def is_collision(enemyX, enemyY, bulletX, bulletY):
     if distance < 27:
         return True
     return False
+
 
 def is_player_collision(enemyX, enemyY, playerX, playerY):
     distance = math.sqrt(math.pow(enemyX - playerX, 2) + (math.pow(enemyY - playerY, 2)))
