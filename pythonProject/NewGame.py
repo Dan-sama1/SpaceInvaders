@@ -12,7 +12,7 @@ screen = pygame.display.set_mode((800, 600))
 # BACKGROUND
 background = pygame.image.load('background.png')
 
-#HOME SCREEN BUTTON
+# HOME SCREEN BUTTON
 button = pygame.image.load('PLAY BUTTON.png')
 
 # BACKGROUND SOUND
@@ -59,7 +59,7 @@ font = pygame.font.Font('ARCADE.TTF', 40)
 textX = 15
 textY = 15
 
-#BEST SCORE
+# BEST SCORE
 best_score_file = 'BEST_SCORE.txt'
 
 # GAME OVER TEXT
@@ -75,6 +75,7 @@ for i in range(num_of_enemies):
     enemyY.append(random.randint(50, 150))
     enemyX_Change.append(2)
     enemyY_Change.append(40)
+
 
 def load_best_score():
     if os.path.exists(best_score_file):
@@ -103,8 +104,9 @@ def save_best_score(score):
         print("Error saving best score.")
 
 
-#UPDATE BEST SCORE
+# UPDATE BEST SCORE
 best_score = load_best_score()
+
 
 # PLAYER
 def player(x, y, blink):
@@ -158,7 +160,8 @@ def gameover_text(blink):
     key = anykey_font.render("PRESS ANY KEY TO CONTINUE...", True, (255, 255, 255))
     screen.blit(key, (225, 350))
 
-#HOME SCREEN
+
+# HOME SCREEN
 def home_screen():
     screen.fill((0, 0, 0))
 
@@ -170,9 +173,9 @@ def home_screen():
     display_highest_score = best_score_font.render("BEST SCORE: " + str(best_score), True, (255, 255, 255))
     screen.blit(display_highest_score, (211, 130))
 
-    screen.blit(button, (324, 250))
+    button_rect = button.get_rect(center=(400, 250))
+    screen.blit(button, button_rect)
 
-    #button =
     pygame.display.update()
     waiting = True
     while waiting:
@@ -181,12 +184,15 @@ def home_screen():
                 pygame.quit()
                 exit()
             if events.type == pygame.MOUSEBUTTONDOWN:
-                #if button.
-                pass
+                if button_rect.collidepoint(events.pos):
+                    waiting = False
+                    reset_game()
+
 
 def reset_game():
-    global playerX, playerY, playerX_change, bullet_state, bulletY, score_value, enemyX, enemyY, enemyX_change, enemyY_change
+    global playerX, playerY, playerX_change, bullet_state, bulletY, score_value, enemyX, enemyY, enemyX_change, enemyY_change, game_over_sound_played, game_over
     game_over = False
+    game_over_sound_played = False
     bullet_state = 'ready'
     bulletY = 480
     score_value = 0
@@ -199,7 +205,7 @@ def reset_game():
     mixer.music.unpause()
     return game_over
 
-home_screen()
+
 # GAME LOOP TO MAKE SURE THAT THE GAME IS ALWAYS RUNNING
 running = True
 game_over = False
@@ -208,6 +214,8 @@ blink_event = pygame.USEREVENT + 1
 pygame.time.set_timer(blink_event, 500)
 blink_timer = 0
 game_over_sound_played = False
+
+home_screen()
 
 while running:
     # ADD COLORS (R, G ,B)
@@ -225,15 +233,12 @@ while running:
         # IF KEY IS PRESSED CHECK IF IT'S LEFT OR RIGHT
         if event.type == pygame.KEYDOWN:
             if not game_over:
-
                 # LEFT ARROW KEY
                 if event.key in [pygame.K_LEFT, pygame.K_a]:
                     playerX_Change = -1
-
                 # RIGHT ARROW KEY
                 if event.key in [pygame.K_RIGHT, pygame.K_d]:
                     playerX_Change = 1
-
                 # SPACE KEY - FIRE BULLET
                 if event.key == pygame.K_SPACE:
                     if bullet_state == 'ready':
@@ -243,7 +248,10 @@ while running:
                         fire_bullet(bulletX, bulletY)
 
             else:
-                #RESET THE STATE OF THE GAME IN CASE THE PLAYER TRIES TO PLAY AGAIN
+                if score_value > best_score:
+                    best_score = score_value
+                    save_best_score(best_score)
+                # RESET THE STATE OF THE GAME IN CASE THE PLAYER TRIES TO PLAY AGAIN
                 reset_game()
                 home_screen()
 
@@ -269,7 +277,6 @@ while running:
 
         # ENEMY MOVEMENTS
         for i in range(num_of_enemies):
-
             # GAME OVER
             if is_player_collision(enemyX[i], enemyY[i], playerX, playerY):
                 game_over = True
@@ -320,17 +327,5 @@ while running:
         if blink_timer < 5:
             player(playerX, playerY, blink)
         gameover_text(blink)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                print("ended")
-            elif event.type == pygame.KEYDOWN:
-                print("key is pressed")
-                if score_value > best_score:
-                    best_score = score_value
-                    save_best_score(best_score)
-                home_screen()
-                # Reset the game state
-                reset_game()
 
     pygame.display.update()  # THIS LINE IS ALWAYS NEEDED BECAUSE WE NEED OUR GAME TO ALWAYS UPDATE
