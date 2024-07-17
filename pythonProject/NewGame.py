@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 from pygame import mixer
+import os
 
 # INITIALIZE THE PYGAME
 pygame.init()
@@ -11,11 +12,14 @@ screen = pygame.display.set_mode((800, 600))
 # BACKGROUND
 background = pygame.image.load('background.png')
 
-#BACKGROUND SOUND
+#HOME SCREEN BUTTON
+button = pygame.image.load('PLAY BUTTON.png')
+
+# BACKGROUND SOUND
 mixer.music.load('background music.wav')
 mixer.music.play(-1)
 
-#LOAD MUSIC
+# LOAD MUSIC
 bullet_sound = mixer.Sound('laser.wav')
 explosion_sound = mixer.Sound('explosion.wav')
 game_over_sound = mixer.Sound('game over.wav')
@@ -38,7 +42,7 @@ bulletIMG = pygame.image.load('bullet.png')
 bulletX = 0
 bulletY = 480
 bulletX_Change = 0
-bulletY_Change = 1
+bulletY_Change = 4
 bullet_state = 'ready'
 
 # ENEMY
@@ -47,7 +51,7 @@ enemyX = []
 enemyY = []
 enemyX_Change = []
 enemyY_Change = []
-num_of_enemies = 6
+num_of_enemies = 30
 
 # SCORE
 score_value = 0
@@ -55,16 +59,52 @@ font = pygame.font.Font('ARCADE.TTF', 40)
 textX = 15
 textY = 15
 
-#GAME OVER TEXT
-gameover_font = pygame.font.Font('ARCADE.TTF', 80)
+#BEST SCORE
+best_score_file = 'BEST_SCORE.txt'
 
+# GAME OVER TEXT
+home_screen_font = pygame.font.Font('ARCADE.TTF', 80)
+gameover_font = pygame.font.Font('ARCADE.TTF', 80)
+anykey_font = pygame.font.Font('ARCADE.TTF', 25)
+display_score_font = pygame.font.Font('ARCADE.TTF', 40)
+best_score_font = pygame.font.Font('ARCADE.TTF', 60)
 
 for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('alien.png'))
     enemyX.append(random.randint(0, 735))
     enemyY.append(random.randint(50, 150))
-    enemyX_Change.append(0.2)
+    enemyX_Change.append(2)
     enemyY_Change.append(40)
+
+def load_best_score():
+    if os.path.exists(best_score_file):
+        try:
+            with open(best_score_file, 'r') as file:
+                score = file.read().strip()
+                if score:
+                    print(f"Loaded score from file: {score}")  # Debugging line
+                    return int(score)
+                else:
+                    print("File is empty.")  # Debugging line
+                    return 0
+        except ValueError:
+            print("Error: File content is not an integer.")  # Debugging line
+            return 0
+    else:
+        print("File does not exist.")  # Debugging line
+        return 0
+
+
+def save_best_score(score):
+    try:
+        with open(best_score_file, 'w') as file:
+            file.write(str(score))
+    except IOError:
+        print("Error saving best score.")
+
+
+#UPDATE BEST SCORE
+best_score = load_best_score()
 
 # PLAYER
 def player(x, y, blink):
@@ -109,9 +149,57 @@ def show_score(x, y):
 def gameover_text(blink):
     if blink:
         gameover = gameover_font.render("GAME OVER", True, (255, 255, 255))
-        screen.blit(gameover, (250, 250))
+        screen.blit(gameover, (214, 250))
+    # DISPLAY SCORE
+    display_score = display_score_font.render("Score: " + str(score_value), True, (255, 255, 255))
+    screen.blit(display_score, (327, 310))
 
+    # DISPLAY INSTRUCTION
+    key = anykey_font.render("PRESS ANY KEY TO CONTINUE...", True, (255, 255, 255))
+    screen.blit(key, (225, 350))
 
+#HOME SCREEN
+def home_screen():
+    screen.fill((0, 0, 0))
+
+    screen.blit(background, (0, 0))
+
+    home_text = home_screen_font.render("SPACE INVADERS", True, (255, 255, 255))
+    screen.blit(home_text, (107, 60))
+
+    display_highest_score = best_score_font.render("BEST SCORE: " + str(best_score), True, (255, 255, 255))
+    screen.blit(display_highest_score, (211, 130))
+
+    screen.blit(button, (324, 250))
+
+    #button =
+    pygame.display.update()
+    waiting = True
+    while waiting:
+        for events in pygame.event.get():
+            if events.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if events.type == pygame.MOUSEBUTTONDOWN:
+                #if button.
+                pass
+
+def reset_game():
+    global playerX, playerY, playerX_change, bullet_state, bulletY, score_value, enemyX, enemyY, enemyX_change, enemyY_change
+    game_over = False
+    bullet_state = 'ready'
+    bulletY = 480
+    score_value = 0
+    playerX = 370
+    playerY = 445
+    playerX_change = 0
+    for i in range(num_of_enemies):
+        enemyX[i] = random.randint(0, 735)
+        enemyY[i] = random.randint(50, 150)
+    mixer.music.unpause()
+    return game_over
+
+home_screen()
 # GAME LOOP TO MAKE SURE THAT THE GAME IS ALWAYS RUNNING
 running = True
 game_over = False
@@ -133,47 +221,43 @@ while running:
         # CLOSING THE GAME
         if event.type == pygame.QUIT:
             running = False
+
         # IF KEY IS PRESSED CHECK IF IT'S LEFT OR RIGHT
         if event.type == pygame.KEYDOWN:
+            if not game_over:
 
-            # LEFT ARROW KEY
-            if event.key == pygame.K_LEFT:
-                playerX_Change = -0.4
+                # LEFT ARROW KEY
+                if event.key in [pygame.K_LEFT, pygame.K_a]:
+                    playerX_Change = -1
 
-            # LEFT A KEY
-            if event.key == pygame.K_a:
-                playerX_Change = -0.4
+                # RIGHT ARROW KEY
+                if event.key in [pygame.K_RIGHT, pygame.K_d]:
+                    playerX_Change = 1
 
-            # RIGHT ARROW KEY
-            if event.key == pygame.K_d:
-                playerX_Change = 0.4
+                # SPACE KEY - FIRE BULLET
+                if event.key == pygame.K_SPACE:
+                    if bullet_state == 'ready':
+                        bullet_sound.play()
+                        # GET THE CURRENT X COORDINATE OF THE SPACESHIP
+                        bulletX = playerX
+                        fire_bullet(bulletX, bulletY)
 
-            # RIGHT ARROW KEY
-            if event.key == pygame.K_RIGHT:
-                playerX_Change = 0.4
-
-            # SPACE KEY - FIRE BULLET
-            if event.key == pygame.K_SPACE:
-                if bullet_state == 'ready':
-                    bullet_sound.play()
-                    # GET THE CURRENT X COORDINATE OF THE SPACESHIP
-                    bulletX = playerX
-                    fire_bullet(bulletX, bulletY)
+            else:
+                #RESET THE STATE OF THE GAME IN CASE THE PLAYER TRIES TO PLAY AGAIN
+                reset_game()
+                home_screen()
 
         # IF THE KEY IS UNPRESSED
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+            if event.key in [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d]:
                 playerX_Change = 0
 
-            if event.key == pygame.K_a or event.key == pygame.K_d:
-                playerX_Change = 0
-
-        #BLINK EVENT
+        # BLINK EVENT
         if event.type == blink_event and game_over:
             blink = not blink
             blink_timer += 1
 
-    #CHECKS IF THE ENEMY COLLIDED WITH THE PLAYER:
+    # CHECKS IF THE ENEMY COLLIDED WITH THE PLAYER:
     if not game_over:
         # ALGORITHM OF THE GAME
         # UPDATE PLAYER MOVEMENT(SIDEWAYS)
@@ -186,7 +270,7 @@ while running:
         # ENEMY MOVEMENTS
         for i in range(num_of_enemies):
 
-            #GAME OVER
+            # GAME OVER
             if is_player_collision(enemyX[i], enemyY[i], playerX, playerY):
                 game_over = True
                 blink_timer = 0
@@ -197,7 +281,8 @@ while running:
                     game_over_sound.play()
                     game_over_sound_played = True
                 break
-            #IF THE ENEMY HITS THE WALL
+
+            # IF THE ENEMY HITS THE WALL
             enemyX[i] += enemyX_Change[i]
             if enemyX[i] <= 0:
                 enemyX_Change[i] = 0.1
@@ -235,5 +320,17 @@ while running:
         if blink_timer < 5:
             player(playerX, playerY, blink)
         gameover_text(blink)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                print("ended")
+            elif event.type == pygame.KEYDOWN:
+                print("key is pressed")
+                if score_value > best_score:
+                    best_score = score_value
+                    save_best_score(best_score)
+                home_screen()
+                # Reset the game state
+                reset_game()
 
     pygame.display.update()  # THIS LINE IS ALWAYS NEEDED BECAUSE WE NEED OUR GAME TO ALWAYS UPDATE
