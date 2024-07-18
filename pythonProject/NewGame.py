@@ -13,7 +13,8 @@ screen = pygame.display.set_mode((800, 600))
 background = pygame.image.load('background.png')
 
 # HOME SCREEN BUTTON
-button = pygame.image.load('PLAY BUTTON.png')
+play_button = pygame.image.load('PLAY BUTTON.png')
+pressed_button = pygame.image.load('PRESSED PLAY BUTTON.png')
 
 # BACKGROUND SOUND
 mixer.music.load('background music.wav')
@@ -163,21 +164,10 @@ def gameover_text(blink):
 
 # HOME SCREEN
 def home_screen():
-    screen.fill((0, 0, 0))
-
-    screen.blit(background, (0, 0))
-
-    home_text = home_screen_font.render("SPACE INVADERS", True, (255, 255, 255))
-    screen.blit(home_text, (107, 60))
-
-    display_highest_score = best_score_font.render("BEST SCORE: " + str(best_score), True, (255, 255, 255))
-    screen.blit(display_highest_score, (211, 130))
-
-    button_rect = button.get_rect(center=(400, 250))
-    screen.blit(button, button_rect)
-
-    pygame.display.update()
+    button_rect = play_button.get_rect(center=(400, 250))
+    button_image = play_button
     waiting = True
+
     while waiting:
         for events in pygame.event.get():
             if events.type == pygame.QUIT:
@@ -185,8 +175,25 @@ def home_screen():
                 exit()
             if events.type == pygame.MOUSEBUTTONDOWN:
                 if button_rect.collidepoint(events.pos):
+                    button_image = pressed_button
+            if events.type == pygame.MOUSEBUTTONUP:
+                if button_rect.collidepoint(events.pos):
                     waiting = False
                     reset_game()
+                button_image = play_button
+
+        screen.fill((0, 0, 0))
+        screen.blit(background, (0, 0))
+
+        home_text = home_screen_font.render("SPACE INVADERS", True, (255, 255, 255))
+        screen.blit(home_text, (107, 60))
+
+        display_highest_score = best_score_font.render("BEST SCORE: " + str(best_score), True, (255, 255, 255))
+        screen.blit(display_highest_score, (211, 130))
+
+        screen.blit(button_image, button_rect)
+        pygame.display.update()
+
 
 
 def reset_game():
