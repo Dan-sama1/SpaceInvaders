@@ -24,6 +24,7 @@ mixer.music.play(-1)
 bullet_sound = mixer.Sound('laser.wav')
 explosion_sound = mixer.Sound('explosion.wav')
 game_over_sound = mixer.Sound('game over.wav')
+button_click = mixer.Sound('button_click.wav')
 
 # TITLE AND ICON
 pygame.display.set_caption("Space Invaders")
@@ -110,11 +111,7 @@ best_score = load_best_score()
 
 
 # PLAYER
-def player(x, y, blink):
-    if blink:
-        white_surface = pygame.Surface((64, 64))
-        white_surface.fill((255, 255, 255))
-        screen.blit(white_surface, (x, y))
+def player(x, y):
     # draw the player on our game
     screen.blit(playerImg, (x, y))
 
@@ -176,6 +173,7 @@ def home_screen():
             if events.type == pygame.MOUSEBUTTONDOWN:
                 if button_rect.collidepoint(events.pos):
                     button_image = pressed_button
+                    button_click.play()
             if events.type == pygame.MOUSEBUTTONUP:
                 if button_rect.collidepoint(events.pos):
                     waiting = False
@@ -193,7 +191,6 @@ def home_screen():
 
         screen.blit(button_image, button_rect)
         pygame.display.update()
-
 
 
 def reset_game():
@@ -328,11 +325,11 @@ while running:
             bulletY -= bulletY_Change
 
         # ADD THE PLAYER IN THE SCREEN
-        player(playerX, playerY, blink)
+        player(playerX, playerY)
         show_score(textX, textY)
     else:
         if blink_timer < 5:
-            player(playerX, playerY, blink)
+            player(playerX, playerY)
         gameover_text(blink)
 
     pygame.display.update()  # THIS LINE IS ALWAYS NEEDED BECAUSE WE NEED OUR GAME TO ALWAYS UPDATE
