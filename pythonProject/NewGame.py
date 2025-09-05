@@ -53,7 +53,7 @@ enemyX = []
 enemyY = []
 enemyX_Change = []
 enemyY_Change = []
-num_of_enemies = 30
+num_of_enemies = 15
 
 # SCORE
 score_value = 0
